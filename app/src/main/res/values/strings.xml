@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Popular Movies</string>
+    <string name="api_key">your_key</string>
+
+    <string name="menu_sort">Sort</string>
+    <string name="menu_popular">Popular</string>
+    <string name="menu_top_rated">Top Rated</string>
+
+    <string name="title_popular">Popular Movies</string>
+    <string name="title_top_rated">Top Rated Movies</string>
+
+    <string name="msg_loading">Loading…</string>
+    <string name="msg_no_movies">No movies</string>
+    <string name="msg_no_connection">No connection</string>
+    <string name="msg_error">Error: %s</string>
+
+    <string name="movie_picture_content_description">Movie poster</string>
+    <string name="detail_error_message">Movie data not available</string>
+
+</resources>
