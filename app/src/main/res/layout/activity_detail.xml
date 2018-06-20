@@ -44,6 +44,15 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="16sp" />
+
+                <CheckBox
+                    android:id="@+id/favorite_cb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:button="@android:drawable/btn_star"
+                    android:gravity="center"
+                    android:text="@string/text_favorite"
+                    android:textSize="16sp" />
             </LinearLayout>
         </LinearLayout>
 
@@ -51,7 +60,35 @@
             android:id="@+id/overview_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
             android:paddingTop="8dp" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:text="@string/text_trailers"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/trailers_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp"
+            android:text="@string/text_reviews"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/reviews_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
     </LinearLayout>
 </ScrollView>

@@ -1,22 +1,17 @@
 package com.udacity.popularmovies;
 
-import android.arch.lifecycle.Observer;
 import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.TextView;
 
 import com.udacity.popularmovies.model.Movie;
-import com.udacity.popularmovies.model.MovieList;
 import com.udacity.popularmovies.model.MovieListViewModel;
 import com.udacity.popularmovies.utils.MovieAdapter;
 
@@ -25,6 +20,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String PREF_SORT_ORDER = "sort_order";
     public static final String SORT_POPULAR = "popular";
     public static final String SORT_TOP_RATED = "top_rated";
+    public static final String SORT_FAVORITES = "favorites";
 
     private MovieListViewModel movieListViewModel;
     private MovieAdapter adapter;
@@ -40,30 +36,22 @@ public class MainActivity extends AppCompatActivity {
 
         GridView moviesView = findViewById(R.id.movies_view);
         moviesView.setAdapter(adapter);
-        moviesView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                launchDetailActivity(adapter.getItem(position));
-            }
-        });
+        moviesView.setOnItemClickListener((adapterView, view, position, l) -> launchDetailActivity(adapter.getItem(position)));
 
         final TextView msgView = findViewById(R.id.message_view);
         moviesView.setEmptyView(msgView);
 
         movieListViewModel = ViewModelProviders.of(this).get(MovieListViewModel.class);
-        movieListViewModel.getMovieListData().observe(this, new Observer<MovieList>() {
-            @Override
-            public void onChanged(@Nullable MovieList movieList) {
-                adapter.clear();
-                if (movieList != null) {
-                    if (movieList.isError()) {
-                        msgView.setText(movieList.getMessage());
-                    } else {
-                        adapter.addAll(movieList.getMovies());
-                    }
+        movieListViewModel.getMovieListData().observe(this, movieList -> {
+            adapter.clear();
+            if (movieList != null && movieList.getMovies().size() > 0) {
+                if (movieList.isError()) {
+                    msgView.setText(movieList.getMessage());
                 } else {
-                    msgView.setText(R.string.msg_no_movies);
+                    adapter.addAll(movieList.getMovies());
                 }
+            } else {
+                msgView.setText(R.string.msg_no_movies);
             }
         });
 
@@ -82,8 +70,10 @@ public class MainActivity extends AppCompatActivity {
     public boolean onPrepareOptionsMenu(Menu menu) {
         if (SORT_POPULAR.equals(sortOrder)) {
             menu.findItem(R.id.menu_popular).setChecked(true);
-        } else {
+        } else if (SORT_TOP_RATED.equals(sortOrder)) {
             menu.findItem(R.id.menu_top_rated).setChecked(true);
+        } else {
+            menu.findItem(R.id.menu_favorites).setChecked(true);
         }
         return true;
     }
@@ -99,6 +89,10 @@ public class MainActivity extends AppCompatActivity {
             item.setChecked(true);
             changeOrder(SORT_TOP_RATED);
             return true;
+        } else if (itemId == R.id.menu_favorites) {
+            item.setChecked(true);
+            changeOrder(SORT_FAVORITES);
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -112,8 +106,10 @@ public class MainActivity extends AppCompatActivity {
 
         if (SORT_POPULAR.equals(sortOrder)) {
             setTitle(R.string.title_popular);
-        } else {
+        } else if (SORT_TOP_RATED.equals(sortOrder)) {
             setTitle(R.string.title_top_rated);
+        } else {
+            setTitle(R.string.title_favorite);
         }
 
         movieListViewModel.changeOrder(sortOrder);

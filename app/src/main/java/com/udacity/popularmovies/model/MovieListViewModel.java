@@ -4,20 +4,23 @@ import android.app.Application;
 import android.arch.lifecycle.AndroidViewModel;
 import android.arch.lifecycle.LiveData;
 import android.arch.lifecycle.MutableLiveData;
+import android.arch.lifecycle.Transformations;
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.udacity.popularmovies.MainActivity;
 import com.udacity.popularmovies.R;
+import com.udacity.popularmovies.database.MovieDatabase;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -25,26 +28,49 @@ import okhttp3.Response;
 
 public class MovieListViewModel extends AndroidViewModel {
 
-    // cache by id,
     // TODO somewhere else in phase 2
-    private static final Map<String, Movie> movies = new ConcurrentHashMap<>();
 
-    private final MutableLiveData<MovieList> movieListData = new MutableLiveData<>();
-    private String apiKey;
+    private final String apiKey;
+    private final MovieDatabase movieDatabase;
+    private final LiveData<MovieList> movieListData;
+    private final LiveData<List<Movie>> favoritesData;
+    private final MutableLiveData<MovieList> remoteData;
     private String sortOrder;
 
     public MovieListViewModel(@NonNull Application application) {
         super(application);
         this.apiKey = application.getString(R.string.api_key);
+        this.movieDatabase = MovieDatabase.getInstance(application);
+        this.favoritesData = movieDatabase.movieDao().loadAllMovies();
+        this.remoteData = new MutableLiveData<>();
+        // merging local favorites data with remote list
+        this.movieListData = Transformations.switchMap(favoritesData, favorites -> {
+            LiveData<MovieList> result = Transformations.map(remoteData, remoteList -> {
+                if (sortOrder.equals(MainActivity.SORT_FAVORITES)) {
+                    // return only favorites
+                    return new MovieList(favorites);
+                } else {
+                    // mark favorites
+                    if (remoteList != null) {
+                        Map<String, Movie> favoritesMap = new HashMap<>();
+                        if (favorites != null) {
+                            for (Movie movie : favorites) {
+                                favoritesMap.put(movie.id, movie);
+                            }
+                        }
+                        for (Movie movie : remoteList.getMovies()) {
+                            movie.favorite = favoritesMap.containsKey(movie.id);
+                        }
+                    }
+                    return remoteList;
+                }
+            });
+            return result;
+        });
     }
 
     public LiveData<MovieList> getMovieListData() {
         return movieListData;
-    }
-
-    // TODO move
-    public static Movie getMovie(String id) {
-        return movies.get(id);
     }
 
     public void changeOrder(String sortOrder) {
@@ -53,8 +79,12 @@ public class MovieListViewModel extends AndroidViewModel {
     }
 
     private void refreshMovieList() {
-        MovieListTask task = new MovieListTask(sortOrder, apiKey, movieListData);
-        task.execute();
+        if (sortOrder.equals(MainActivity.SORT_FAVORITES)) {
+            remoteData.setValue(null);
+        } else {
+            MovieListTask task = new MovieListTask(sortOrder, apiKey, remoteData);
+            task.execute();
+        }
     }
 
     class MovieListTask extends AsyncTask<Void, Void, MovieList> {
@@ -133,7 +163,7 @@ public class MovieListViewModel extends AndroidViewModel {
             // update cache
             if (!movieList.isError()) {
                 for (Movie movie : movieList.getMovies()) {
-                    movies.put(movie.id, movie);
+                    MovieCache.putMovie(movie);
                 }
             }
         }

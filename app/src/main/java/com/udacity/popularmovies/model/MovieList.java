@@ -8,6 +8,13 @@ public class MovieList {
     private List<Movie> movies;
     private String message;
 
+    public MovieList() {
+    }
+
+    public MovieList(List<Movie> movies) {
+        this.movies = movies;
+    }
+
     public List<Movie> getMovies() {
         return movies;
     }
