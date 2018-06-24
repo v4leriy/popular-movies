@@ -51,7 +51,7 @@ public class MovieListViewModel extends AndroidViewModel {
                     return new MovieList(favorites);
                 } else {
                     // mark favorites
-                    if (remoteList != null) {
+                    if (remoteList != null && !remoteList.isError()) {
                         Map<String, Movie> favoritesMap = new HashMap<>();
                         if (favorites != null) {
                             for (Movie movie : favorites) {
@@ -74,8 +74,10 @@ public class MovieListViewModel extends AndroidViewModel {
     }
 
     public void changeOrder(String sortOrder) {
-        this.sortOrder = sortOrder;
-        refreshMovieList();
+        if (sortOrder != null && !sortOrder.equals(this.sortOrder)) {
+            this.sortOrder = sortOrder;
+            refreshMovieList();
+        }
     }
 
     private void refreshMovieList() {

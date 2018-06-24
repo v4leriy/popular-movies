@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         movieListViewModel = ViewModelProviders.of(this).get(MovieListViewModel.class);
         movieListViewModel.getMovieListData().observe(this, movieList -> {
             adapter.clear();
-            if (movieList != null && movieList.getMovies().size() > 0) {
+            if (movieList != null) {
                 if (movieList.isError()) {
                     msgView.setText(movieList.getMessage());
                 } else {
